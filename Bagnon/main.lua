@@ -331,6 +331,11 @@ function Bagnon:GUILDBANKFRAME_OPENED()
 end
 
 function Bagnon:GUILDBANKFRAME_CLOSED()
+	local tab = GetCurrentGuildBankTab()
+	if tab and GetGuildBankTabInfo(tab) then
+		return
+	end
+
 	self:HideFrameAtEvent('inventory', 'guildbank')
 end
 

@@ -19,5 +19,10 @@ function GuildBank:GUILDBANKFRAME_OPENED()
 end
 
 function GuildBank:GUILDBANKFRAME_CLOSED()
+	local tab = GetCurrentGuildBankTab()
+	if tab and GetGuildBankTabInfo(tab) then
+		return
+	end
+
 	Bagnon.FrameSettings:Get('guildbank'):Hide()
 end
