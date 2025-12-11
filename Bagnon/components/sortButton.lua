@@ -53,6 +53,30 @@ function SortButton:New(frameID, parent)
 
 	b:SetFrameID(frameID)
 
+	b:RegisterEvent('UNIT_HEALTH')
+	b:RegisterEvent('PLAYER_ALIVE')
+	b:RegisterEvent('PLAYER_UNGHOST')
+	b:RegisterEvent('PLAYER_DEAD')
+	b:SetScript('OnEvent', function(self, event, ...)
+		if event == 'UNIT_HEALTH' then
+			local unit = ...
+			if unit ~= 'player' then return end
+		end
+		self:UpdateEnabledState()
+	end)
+
+	function b:UpdateEnabledState()
+		if UnitIsDeadOrGhost('player') then
+			self:Disable()
+			self:SetAlpha(0.5)
+		else
+			self:Enable()
+			self:SetAlpha(1)
+		end
+	end
+
+	b:UpdateEnabledState()
+
 	return b
 end
 
