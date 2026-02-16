@@ -95,6 +95,7 @@ function SavedSettings:GetDefaultSettings()
 			trade = {0.5, 1, 0.5},
 			shard = {0.9, 0.7, 1},
 			keyring = {1, 0.8, 0},
+			sortignore = {1, 0.4, 0.4},
 		},
 		
 		highlightOpacity = 0.5,

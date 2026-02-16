@@ -296,6 +296,13 @@ end
 --item slot color
 function ItemSlot:UpdateSlotColor()
 	if (not self:GetItem()) and self:ColoringBagSlots() then
+		if self:IsSortIgnoredSlot() then
+			local r, g, b = self:GetSortIgnoreSlotColor()
+			SetItemButtonTextureVertexColor(self, r, g, b)
+			self:GetNormalTexture():SetVertexColor(r, g, b)
+			return
+		end
+
 		if self:IsKeyRingSlot() then
 			local r, g, b = self:GetKeyringSlotColor()
 			SetItemButtonTextureVertexColor(self, r, g, b)
@@ -623,6 +630,44 @@ end
 
 function ItemSlot:ColoringBagSlots()
 	return Bagnon.Settings:ColoringBagSlots()
+end
+
+
+--[[ Sort Ignored Slot ]]--
+
+function ItemSlot:IsSortIgnoredSlot()
+	local ignoreCount = Bagnon.Settings:GetSortIgnoreSlotsCount() or 0
+	if ignoreCount <= 0 then
+		return false
+	end
+
+	-- Only apply to inventory frame, not bank or keyring
+	local frameID = self:GetFrameID()
+	if frameID ~= 'inventory' then
+		return false
+	end
+
+	local myBag = self:GetBag()
+	local mySlot = self:GetID()
+	local settings = self:GetSettings()
+
+	-- Calculate global slot index
+	local slotIndex = 0
+	for _, bag in settings:GetVisibleBagSlots() do
+		local bagSize = Bagnon.BagSlotInfo:GetSize(self:GetPlayer(), bag)
+		if bag == myBag then
+			slotIndex = slotIndex + mySlot
+			break
+		else
+			slotIndex = slotIndex + bagSize
+		end
+	end
+
+	return slotIndex <= ignoreCount
+end
+
+function ItemSlot:GetSortIgnoreSlotColor()
+	return Bagnon.Settings:GetItemSlotColor('sortignore')
 end
 
 
