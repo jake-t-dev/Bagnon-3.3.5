@@ -647,20 +647,28 @@ function ItemSlot:IsSortIgnoredSlot()
 		return false
 	end
 
+	-- Keyring slots are never locked
+	if self:IsKeyRingSlot() then
+		return false
+	end
+
 	local myBag = self:GetBag()
 	local mySlot = self:GetID()
 	local settings = self:GetSettings()
 	local atBottom = Bagnon.Settings:IsSortIgnoreSlotsAtBottom()
 
-	-- Calculate total slots and slot index
+	-- Calculate total slots and slot index, excluding keyring
 	local totalSlots = 0
 	local slotIndex = 0
 	for _, bag in settings:GetVisibleBagSlots() do
-		local bagSize = Bagnon.BagSlotInfo:GetSize(self:GetPlayer(), bag)
-		totalSlots = totalSlots + bagSize
-		if slotIndex == 0 then
-			if bag == myBag then
-				slotIndex = totalSlots - bagSize + mySlot
+		-- Skip keyring bags
+		if not Bagnon.BagSlotInfo:IsKeyRing(bag) then
+			local bagSize = Bagnon.BagSlotInfo:GetSize(self:GetPlayer(), bag)
+			totalSlots = totalSlots + bagSize
+			if slotIndex == 0 then
+				if bag == myBag then
+					slotIndex = totalSlots - bagSize + mySlot
+				end
 			end
 		end
 	end

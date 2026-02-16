@@ -154,15 +154,31 @@ function Sort:GetSpaces()
 		end
 	end
 
-  --ignore the inputted number of slots at the top or bottom of the bag
+  --ignore the inputted number of slots at the top or bottom of the bag (excluding keyring)
   local ignoreCount = Bagnon.Settings:GetSortIgnoreSlotsCount() or 0
   if ignoreCount > 0 then
     local atBottom = Bagnon.Settings:IsSortIgnoreSlotsAtBottom()
-    for i = 1, ignoreCount do
-      if atBottom then
-        tremove(spaces, #spaces)
-      else
-        tremove(spaces, 1)
+    local removed = 0
+    if atBottom then
+      -- Remove from end, skipping keyring slots
+      local i = #spaces
+      while removed < ignoreCount and i > 0 do
+        if not Bagnon.BagSlotInfo:IsKeyRing(spaces[i].bag) then
+          tremove(spaces, i)
+          removed = removed + 1
+        end
+        i = i - 1
+      end
+    else
+      -- Remove from start, skipping keyring slots
+      local i = 1
+      while removed < ignoreCount and i <= #spaces do
+        if not Bagnon.BagSlotInfo:IsKeyRing(spaces[i].bag) then
+          tremove(spaces, i)
+          removed = removed + 1
+        else
+          i = i + 1
+        end
       end
     end
   end

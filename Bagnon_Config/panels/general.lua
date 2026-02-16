@@ -100,7 +100,7 @@ function GeneralOptions:AddWidgets()
 
 	local sortIgnoreSlotsSlider = self:CreateSortIgnoreSlotsSlider()
 	sortIgnoreSlotsSlider:SetPoint('TOPLEFT', enableBlizzardBagPassThrough, 'BOTTOMLEFT', 0, -16)
-	sortIgnoreSlotsSlider:SetWidth(180)
+	sortIgnoreSlotsSlider:SetWidth(240)
 
 	local sortIgnoreSlotsAtBottom = self:CreateSortIgnoreSlotsAtBottomCheckbox()
 	sortIgnoreSlotsAtBottom:SetPoint('TOPLEFT', sortIgnoreSlotsSlider, 'BOTTOMLEFT', 0, -16)
