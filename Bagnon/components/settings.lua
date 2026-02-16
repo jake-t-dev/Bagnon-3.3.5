@@ -95,6 +95,20 @@ function Settings:AreFramePositionsLocked()
 end
 
 
+--sort ignore slots count
+function Settings:SetSortIgnoreSlotsCount(count)
+	local count = math.max(count, 0)
+	if self:GetSortIgnoreSlotsCount() ~= count then
+		self:GetDB().sortIgnoreSlotsCount = count
+		self:SendMessage('SORT_IGNORE_SLOTS_COUNT_UPDATE', count)
+	end
+end
+
+function Settings:GetSortIgnoreSlotsCount()
+	return self:GetDB().sortIgnoreSlotsCount or 0
+end
+
+
 --item slot coloring
 function Settings:SetColorBagSlots(enable)
 	if self:ColoringBagSlots() ~= enable then

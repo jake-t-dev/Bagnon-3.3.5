@@ -98,6 +98,7 @@ function SavedSettings:GetDefaultSettings()
 		},
 		
 		highlightOpacity = 0.5,
+		sortIgnoreSlotsCount = 0,
 	}
 	
 	return self.defaults

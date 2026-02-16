@@ -153,6 +153,15 @@ function Sort:GetSpaces()
       end
 		end
 	end
+
+  --ignore the inputted number of slots at the bottom of the bag
+  local ignoreCount = Bagnon.Settings:GetSortIgnoreSlotsCount() or 0
+  if ignoreCount > 0 then
+    for i = 1, ignoreCount do
+      tremove(spaces)
+    end
+  end
+
   --[[
   for _, bag in pairs(self.bags) do
     local link, count, texture = bag:GetBagInfo()

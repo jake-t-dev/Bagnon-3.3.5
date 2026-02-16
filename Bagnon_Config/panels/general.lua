@@ -97,6 +97,10 @@ function GeneralOptions:AddWidgets()
 	
 	local enableBlizzardBagPassThrough = self:CreateBlizzardBagPassThroughCheckbox()
 	enableBlizzardBagPassThrough:SetPoint('TOPLEFT', showEmptyItemSlotTextures, 'BOTTOMLEFT', 0, -SPACING)
+
+	local sortIgnoreSlotsSlider = self:CreateSortIgnoreSlotsSlider()
+	sortIgnoreSlotsSlider:SetPoint('TOPLEFT', enableBlizzardBagPassThrough, 'BOTTOMLEFT', 0, -16)
+	sortIgnoreSlotsSlider:SetWidth(180)
 end
 
 function GeneralOptions:UpdateWidgets()
@@ -216,6 +220,27 @@ end
 function GeneralOptions:GetBlizzardBagPassThroughCheckbox()
 	return self.blizzardBagPassThroughCheckbox
 end 
+
+
+--sort ignore slots slider
+function GeneralOptions:CreateSortIgnoreSlotsSlider()
+	local slider = Bagnon.OptionsSlider:New(L.SortIgnoreSlots, self, 0, 20, 1)
+
+	slider.SetSavedValue = function(self, value)
+		Bagnon.Settings:SetSortIgnoreSlotsCount(value)
+	end
+
+	slider.GetSavedValue = function(self)
+		return Bagnon.Settings:GetSortIgnoreSlotsCount()
+	end
+
+	self.sortIgnoreSlotsSlider = slider
+	return slider
+end
+
+function GeneralOptions:GetSortIgnoreSlotsSlider()
+	return self.sortIgnoreSlotsSlider
+end
 
 
 --[[ Load the thing ]]--

@@ -375,6 +375,14 @@ function SavedFrameSettings:IsSlotOrderReversed()
 	return self:GetDB().reverseSlotOrder
 end
 
+function SavedFrameSettings:SetSortIgnoreSlotsCount(count)
+	self:GetDB().sortIgnoreSlotsCount = count
+end
+
+function SavedFrameSettings:GetSortIgnoreSlotsCount()
+	return self:GetDB().sortIgnoreSlotsCount
+end
+
 
 --[[ Databroker Display Object ]]--
 
@@ -442,6 +450,8 @@ function SavedFrameSettings:GetDefaultInventorySettings()
 		hasDBOFrame = true,
 		hasSearchToggle = true,
 		hasOptionsToggle = true,
+        
+    sortIgnoreSlotsCount = 0,
 		hasKeyringToggle = true,
 		hasSortButton = true,
 
