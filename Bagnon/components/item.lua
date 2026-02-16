@@ -650,20 +650,26 @@ function ItemSlot:IsSortIgnoredSlot()
 	local myBag = self:GetBag()
 	local mySlot = self:GetID()
 	local settings = self:GetSettings()
+	local atBottom = Bagnon.Settings:IsSortIgnoreSlotsAtBottom()
 
-	-- Calculate global slot index
+	-- Calculate total slots and slot index
+	local totalSlots = 0
 	local slotIndex = 0
 	for _, bag in settings:GetVisibleBagSlots() do
 		local bagSize = Bagnon.BagSlotInfo:GetSize(self:GetPlayer(), bag)
-		if bag == myBag then
-			slotIndex = slotIndex + mySlot
-			break
-		else
-			slotIndex = slotIndex + bagSize
+		totalSlots = totalSlots + bagSize
+		if slotIndex == 0 then
+			if bag == myBag then
+				slotIndex = totalSlots - bagSize + mySlot
+			end
 		end
 	end
 
-	return slotIndex <= ignoreCount
+	if atBottom then
+		return slotIndex > (totalSlots - ignoreCount)
+	else
+		return slotIndex <= ignoreCount
+	end
 end
 
 function ItemSlot:GetSortIgnoreSlotColor()

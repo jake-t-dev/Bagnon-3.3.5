@@ -101,6 +101,9 @@ function GeneralOptions:AddWidgets()
 	local sortIgnoreSlotsSlider = self:CreateSortIgnoreSlotsSlider()
 	sortIgnoreSlotsSlider:SetPoint('TOPLEFT', enableBlizzardBagPassThrough, 'BOTTOMLEFT', 0, -16)
 	sortIgnoreSlotsSlider:SetWidth(180)
+
+	local sortIgnoreSlotsAtBottom = self:CreateSortIgnoreSlotsAtBottomCheckbox()
+	sortIgnoreSlotsAtBottom:SetPoint('TOPLEFT', sortIgnoreSlotsSlider, 'BOTTOMLEFT', 0, -16)
 end
 
 function GeneralOptions:UpdateWidgets()
@@ -240,6 +243,27 @@ end
 
 function GeneralOptions:GetSortIgnoreSlotsSlider()
 	return self.sortIgnoreSlotsSlider
+end
+
+
+--sort ignore slots at bottom checkbox
+function GeneralOptions:CreateSortIgnoreSlotsAtBottomCheckbox()
+	local button = Bagnon.OptionsCheckButton:New(L.SortIgnoreSlotsAtBottom, self)
+
+	button.OnEnableSetting = function(self, enable)
+		Bagnon.Settings:SetSortIgnoreSlotsAtBottom(enable)
+	end
+
+	button.IsSettingEnabled = function(self)
+		return Bagnon.Settings:IsSortIgnoreSlotsAtBottom()
+	end
+
+	self.sortIgnoreSlotsAtBottomCheckbox = button
+	return button
+end
+
+function GeneralOptions:GetSortIgnoreSlotsAtBottomCheckbox()
+	return self.sortIgnoreSlotsAtBottomCheckbox
 end
 
 

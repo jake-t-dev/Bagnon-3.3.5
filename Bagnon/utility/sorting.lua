@@ -154,11 +154,16 @@ function Sort:GetSpaces()
 		end
 	end
 
-  --ignore the inputted number of slots at the top of the bag
+  --ignore the inputted number of slots at the top or bottom of the bag
   local ignoreCount = Bagnon.Settings:GetSortIgnoreSlotsCount() or 0
   if ignoreCount > 0 then
+    local atBottom = Bagnon.Settings:IsSortIgnoreSlotsAtBottom()
     for i = 1, ignoreCount do
-      tremove(spaces, 1)
+      if atBottom then
+        tremove(spaces, #spaces)
+      else
+        tremove(spaces, 1)
+      end
     end
   end
 

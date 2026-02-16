@@ -108,6 +108,18 @@ function Settings:GetSortIgnoreSlotsCount()
 	return self:GetDB().sortIgnoreSlotsCount or 0
 end
 
+--sort ignore slots position (top or bottom)
+function Settings:SetSortIgnoreSlotsAtBottom(enable)
+	if self:IsSortIgnoreSlotsAtBottom() ~= enable then
+		self:GetDB().sortIgnoreSlotsAtBottom = enable
+		self:SendMessage('SORT_IGNORE_SLOTS_POSITION_UPDATE', enable)
+	end
+end
+
+function Settings:IsSortIgnoreSlotsAtBottom()
+	return self:GetDB().sortIgnoreSlotsAtBottom or false
+end
+
 
 --item slot coloring
 function Settings:SetColorBagSlots(enable)
