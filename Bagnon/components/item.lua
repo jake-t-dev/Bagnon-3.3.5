@@ -641,28 +641,27 @@ function ItemSlot:IsSortIgnoredSlot()
 		return false
 	end
 
-	-- Only apply to inventory frame, not bank or keyring
+	-- Ignore bank
 	local frameID = self:GetFrameID()
 	if frameID ~= 'inventory' then
 		return false
 	end
 
-	-- Keyring slots are never locked
-	if self:IsKeyRingSlot() then
+	-- Non standard bags are never locked
+	local myBag = self:GetBag()
+	if not Bagnon.BagSlotInfo:IsStandardBag(self:GetPlayer(), myBag) then
 		return false
 	end
 
-	local myBag = self:GetBag()
 	local mySlot = self:GetID()
 	local settings = self:GetSettings()
 	local atBottom = Bagnon.Settings:IsSortIgnoreSlotsAtBottom()
 
-	-- Calculate total slots and slot index, excluding keyring
+	-- Calculate total slots and slot index, excluding specialty bags
 	local totalSlots = 0
 	local slotIndex = 0
 	for _, bag in settings:GetVisibleBagSlots() do
-		-- Skip keyring bags
-		if not Bagnon.BagSlotInfo:IsKeyRing(bag) then
+		if Bagnon.BagSlotInfo:IsStandardBag(self:GetPlayer(), bag) then
 			local bagSize = Bagnon.BagSlotInfo:GetSize(self:GetPlayer(), bag)
 			totalSlots = totalSlots + bagSize
 			if slotIndex == 0 then

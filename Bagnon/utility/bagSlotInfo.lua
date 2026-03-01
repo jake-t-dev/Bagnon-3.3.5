@@ -148,6 +148,11 @@ function BagSlotInfo:IsTradeBag(player, bagSlot)
 	return bit.band(self:GetBagType(player, bagSlot), BAGTYPE_PROFESSION) > 0
 end
 
+-- Returns true if the bag is a standard bag (not keyring, quiver, profession, or soul bag etc)
+function BagSlotInfo:IsStandardBag(player, bagSlot)
+	return self:GetBagType(player, bagSlot) == 0
+end
+
 
 --[[ Conversion Methods ]]--
 
