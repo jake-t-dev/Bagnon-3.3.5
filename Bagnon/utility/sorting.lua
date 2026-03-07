@@ -154,7 +154,6 @@ function Sort:GetSpaces()
 		end
 	end
 
-  --ignore the inputted number of slots at the top or bottom of the bag
   local ignoreCount = Bagnon.Settings:GetSortIgnoreSlotsCount() or 0
   if ignoreCount > 0 and itemFrame:GetFrameID() == 'inventory' then
     local atBottom = Bagnon.Settings:IsSortIgnoreSlotsAtBottom()
@@ -170,7 +169,7 @@ function Sort:GetSpaces()
         i = i - 1
       end
     else
-      -- Remove from start
+      local i = 1
       while removed < ignoreCount and i <= #spaces do
         if Bagnon.BagSlotInfo:IsStandardBag(player, spaces[i].bag) then
           tremove(spaces, i)
