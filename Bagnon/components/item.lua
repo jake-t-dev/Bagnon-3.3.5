@@ -235,6 +235,9 @@ end
 function ItemSlot:OnHide()
 	self:HideStackSplitFrame()
 
+	-- Save current item state so we can detect new items on next show
+	self.itemOnLastHide = self.hasItem
+
 	--dismiss new item glow on bag close
 	if self.newItemGlow then
 		self.newItemGlow:Hide()
@@ -516,9 +519,18 @@ function ItemSlot:UpdateNewItemGlow(link, prevItem)
 		return
 	end
 
-	-- Don't glow on initial load (bag open)
+	-- On first update after bag open, compare against saved state from when
+	-- the bag was last closed, so items looted while closed still glow
 	if self.isFirstUpdate then
 		self.isFirstUpdate = nil
+		local lastItem = self.itemOnLastHide
+		self.itemOnLastHide = nil
+
+		-- Item appeared in a previously empty slot while bag was closed
+		if link and not lastItem then
+			self.isNewItem = true
+			self.newItemGlow:Show()
+		end
 		return
 	end
 
