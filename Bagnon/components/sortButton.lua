@@ -50,19 +50,51 @@ function SortButton:New(frameID, parent)
 	b:SetScript('OnClick', b.OnClick)
 	b:SetScript('OnEnter', b.OnEnter)
 	b:SetScript('OnLeave', b.OnLeave)
+	b:SetScript('OnShow', b.OnShow)
+	b:SetScript('OnHide', b.OnHide)
+	b:SetScript('OnEvent', b.OnEvent)
 
 	b:SetFrameID(frameID)
+	b:UpdateDisabledState()
 
 	return b
 end
 
 function SortButton:OnClick(button)
+	if UnitIsDead('player') then return end
 	self:SetChecked(true)
 	self:RegisterMessage('SORTING_STATUS')
 
 	local frame = self:GetParent()
 	-- frame:IsCached ?
 	frame:SortItems()
+end
+
+function SortButton:OnShow()
+	self:RegisterEvent('PLAYER_DEAD')
+	self:RegisterEvent('PLAYER_UNGHOST')
+	self:RegisterEvent('PLAYER_ALIVE')
+	self:UpdateDisabledState()
+end
+
+function SortButton:OnHide()
+	self:UnregisterEvent('PLAYER_DEAD')
+	self:UnregisterEvent('PLAYER_UNGHOST')
+	self:UnregisterEvent('PLAYER_ALIVE')
+end
+
+function SortButton:OnEvent()
+	self:UpdateDisabledState()
+end
+
+function SortButton:UpdateDisabledState()
+	if UnitIsDead('player') then
+		self:Disable()
+		self:GetNormalTexture():SetDesaturated(true)
+	else
+		self:Enable()
+		self:GetNormalTexture():SetDesaturated(false)
+	end
 end
 
 function SortButton:OnEnter()
