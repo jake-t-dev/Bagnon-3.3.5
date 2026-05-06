@@ -31,6 +31,24 @@ function Bagnon:OnInitialize()
 	self:CreateLDBLauncher()
 	self:CreateGuildBankLoader()
 	self:SetupBagBarCounts()
+	self:HookItemMoveTracking()
+end
+
+function Bagnon:HookItemMoveTracking()
+	local orig = PickupContainerItem
+	PickupContainerItem = function(...)
+		Bagnon.recentItemMove = true
+		-- Clear the flag after a short delay (next frame)
+		C_Timer = C_Timer or nil
+		if not Bagnon.itemMoveTimer then
+			Bagnon.itemMoveTimer = CreateFrame('Frame')
+		end
+		Bagnon.itemMoveTimer:SetScript('OnUpdate', function(self)
+			Bagnon.recentItemMove = nil
+			self:SetScript('OnUpdate', nil)
+		end)
+		return orig(...)
+	end
 end
 
 --create a loader for the options menu
@@ -487,9 +505,9 @@ function Bagnon:UpdateBagBarCounts()
 					text:Show()
 				end
 			else
-				-- Only show on profession bags
+				-- Only show on profession bags (not quivers/ammo or keyring)
 				local bagType = self.BagSlotInfo:GetBagType('player', bag)
-				if bagType and bagType > 0 and bagType ~= 256 then
+				if bagType and bagType > 0 and bagType ~= 256 and bit.band(bagType, 0x0003) == 0 then
 					shouldShow = true
 				end
 

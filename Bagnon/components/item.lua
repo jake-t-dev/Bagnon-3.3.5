@@ -527,6 +527,11 @@ function ItemSlot:UpdateNewItemGlow(link, prevItem)
 		return
 	end
 
+	-- Don't glow if player is moving items (cursor has item or just placed one)
+	if CursorHasItem() or Bagnon.recentItemMove then
+		return
+	end
+
 	-- Mark as new if an item appeared in a previously empty slot
 	if link and not prevItem then
 		self.isNewItem = true
