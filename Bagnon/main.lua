@@ -30,6 +30,7 @@ function Bagnon:OnInitialize()
 	self:CreateOptionsLoader()
 	self:CreateLDBLauncher()
 	self:CreateGuildBankLoader()
+	self:SetupBagBarCounts()
 end
 
 --create a loader for the options menu
@@ -410,4 +411,101 @@ function Bagnon:ShowOptions()
 		return true
 	end
 	return false
+end
+
+
+--[[
+	Bag Bar Free Slot Count
+	Shows free slot counts on the main backpack button and profession bags
+--]]
+
+function Bagnon:SetupBagBarCounts()
+	local buttons = {
+		{button = MainMenuBarBackpackButton, bag = 0},
+		{button = CharacterBag0Slot, bag = 1},
+		{button = CharacterBag1Slot, bag = 2},
+		{button = CharacterBag2Slot, bag = 3},
+		{button = CharacterBag3Slot, bag = 4},
+	}
+
+	self.bagBarCountTexts = {}
+
+	for _, info in ipairs(buttons) do
+		local btn = info.button
+		if btn then
+			local text = btn:CreateFontString(nil, 'OVERLAY')
+			text:SetFont(STANDARD_TEXT_FONT, 12, 'OUTLINE')
+			text:SetPoint('BOTTOM', btn, 'BOTTOM', 0, 2)
+			text:SetTextColor(1, 1, 1)
+			text:Hide()
+			self.bagBarCountTexts[info.bag] = text
+		end
+	end
+
+	-- Hide the default backpack count since we replace it
+	if MainMenuBarBackpackButtonCount then
+		MainMenuBarBackpackButtonCount:Hide()
+		hooksecurefunc(MainMenuBarBackpackButtonCount, 'Show', function(self) self:Hide() end)
+	end
+
+	local updater = CreateFrame('Frame')
+	updater:RegisterEvent('BAG_UPDATE')
+	updater:RegisterEvent('PLAYER_ENTERING_WORLD')
+	updater:SetScript('OnEvent', function()
+		Bagnon:UpdateBagBarCounts()
+	end)
+
+	self.Callbacks:Listen(self, 'SLOT_COUNT_UPDATE', 'UpdateBagBarCounts')
+
+	self:UpdateBagBarCounts()
+end
+
+function Bagnon:UpdateBagBarCounts()
+	if not self.bagBarCountTexts then return end
+	if not self.Settings then return end
+
+	local showCounts = self.Settings:IsShowingSlotCount()
+
+	for bag, text in pairs(self.bagBarCountTexts) do
+		if not showCounts then
+			text:Hide()
+		else
+			local shouldShow = false
+
+			if bag == 0 then
+				-- Backpack shows total free slots across all bags
+				shouldShow = true
+				if shouldShow then
+					local totalFree = 0
+					for b = 0, NUM_BAG_SLOTS do
+						local size = GetContainerNumSlots(b)
+						if size > 0 then
+							totalFree = totalFree + GetContainerNumFreeSlots(b)
+						end
+					end
+					text:SetText(totalFree)
+					text:Show()
+				end
+			else
+				-- Only show on profession bags
+				local bagType = self.BagSlotInfo:GetBagType('player', bag)
+				if bagType and bagType > 0 and bagType ~= 256 then
+					shouldShow = true
+				end
+
+				if shouldShow then
+					local size = GetContainerNumSlots(bag)
+					if size > 0 then
+						local freeSlots = GetContainerNumFreeSlots(bag)
+						text:SetText(freeSlots)
+						text:Show()
+					else
+						text:Hide()
+					end
+				else
+					text:Hide()
+				end
+			end
+		end
+	end
 end

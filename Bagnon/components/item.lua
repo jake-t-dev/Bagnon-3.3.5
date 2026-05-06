@@ -58,6 +58,25 @@ function ItemSlot:Create()
 	--hack, make sure the cooldown model stays visible
 	item.cooldown = _G[item:GetName() .. 'Cooldown']
 
+	--item level text
+	local ilvlText = item:CreateFontString(nil, 'OVERLAY')
+	ilvlText:SetFont(STANDARD_TEXT_FONT, 12, 'OUTLINE')
+	ilvlText:SetPoint('TOPLEFT', item, 'TOPLEFT', 2, -2)
+	ilvlText:SetTextColor(0.1, 1, 0.1)
+	ilvlText:Hide()
+	item.ilvlText = ilvlText
+
+	--new item glow
+	local newItemGlow = item:CreateTexture(nil, 'OVERLAY')
+	newItemGlow:SetWidth(67)
+	newItemGlow:SetHeight(67)
+	newItemGlow:SetPoint('CENTER', item)
+	newItemGlow:SetTexture([[Interface\Buttons\UI-ActionButton-Border]])
+	newItemGlow:SetBlendMode('ADD')
+	newItemGlow:SetVertexColor(1, 0.82, 0)
+	newItemGlow:Hide()
+	item.newItemGlow = newItemGlow
+
 	--get rid of any registered frame events, and use my own
 	item:SetScript('OnEvent', nil)
 	item:SetScript('OnEnter', item.OnEnter)
@@ -179,6 +198,17 @@ function ItemSlot:ITEM_SLOT_COLOR_UPDATE(msg, type, r, g, b)
 	self:Update()
 end
 
+function ItemSlot:ITEM_LEVEL_UPDATE(msg, enable)
+	self:UpdateItemLevel(self:GetItem())
+end
+
+function ItemSlot:NEW_ITEM_GLOW_UPDATE(msg, enable)
+	if not enable and self.newItemGlow then
+		self.newItemGlow:Hide()
+		self.isNewItem = nil
+	end
+end
+
 function ItemSlot:QUEST_ACCEPTED()
 	self:UpdateBorder()
 end
@@ -198,11 +228,18 @@ end
 --[[ Frame Events ]]--
 
 function ItemSlot:OnShow()
+	self.isFirstUpdate = true
 	self:Update()
 end
 
 function ItemSlot:OnHide()
 	self:HideStackSplitFrame()
+
+	--dismiss new item glow on bag close
+	if self.newItemGlow then
+		self.newItemGlow:Hide()
+	end
+	self.isNewItem = nil
 end
 
 function ItemSlot:OnDragStart()
@@ -220,6 +257,12 @@ end
 
 function ItemSlot:OnEnter()
 	local dummySlot = self:GetDummyItemSlot()
+
+	--dismiss new item glow on hover
+	if self.newItemGlow then
+		self.newItemGlow:Hide()
+	end
+	self.isNewItem = nil
 
 	if self:IsCached() then
 		dummySlot:SetParent(self)
@@ -256,6 +299,7 @@ function ItemSlot:Update()
 
 	local texture, count, locked, quality, readable, lootable, link = self:GetItemSlotInfo()
 
+	local prevItem = self.hasItem
 	self:SetItem(link)
 	self:SetTexture(texture)
 	self:SetCount(count)
@@ -266,6 +310,8 @@ function ItemSlot:Update()
 	self:UpdateSlotColor()
 	self:UpdateSearch()
 	self:UpdateBagSearch()
+	self:UpdateItemLevel(link)
+	self:UpdateNewItemGlow(link, prevItem)
 
 	if GameTooltip:IsOwned(self) then
 		self:UpdateTooltip()
@@ -435,6 +481,64 @@ function ItemSlot:UpdateCooldown()
 	else
 		CooldownFrame_SetTimer(self.cooldown, 0, 0, 0)
 		SetItemButtonTextureVertexColor(self, 1, 1, 1)
+	end
+end
+
+--item level overlay
+function ItemSlot:UpdateItemLevel(link)
+	local ilvlText = self.ilvlText
+	if not ilvlText then return end
+
+	if not Bagnon.Settings:IsShowingItemLevel() then
+		ilvlText:Hide()
+		return
+	end
+
+	if link then
+		local _, _, _, iLevel, _, _, _, _, equipSlot = GetItemInfo(link)
+		if iLevel and iLevel > 1 and equipSlot and equipSlot ~= '' and equipSlot ~= 'INVTYPE_BAG' and equipSlot ~= 'INVTYPE_AMMO' then
+			ilvlText:SetText(iLevel)
+			ilvlText:Show()
+			return
+		end
+	end
+
+	ilvlText:Hide()
+end
+
+--new item glow
+function ItemSlot:UpdateNewItemGlow(link, prevItem)
+	if not self.newItemGlow then return end
+
+	if not Bagnon.Settings:IsShowingNewItemGlow() then
+		self.newItemGlow:Hide()
+		self.isNewItem = nil
+		return
+	end
+
+	-- Don't glow on initial load (bag open)
+	if self.isFirstUpdate then
+		self.isFirstUpdate = nil
+		return
+	end
+
+	-- Don't glow during sorting
+	if Bagnon.isSorting then
+		return
+	end
+
+	-- Mark as new if an item appeared in a previously empty slot
+	if link and not prevItem then
+		self.isNewItem = true
+		self.newItemGlow:Show()
+	elseif not link then
+		self.isNewItem = nil
+		self.newItemGlow:Hide()
+	end
+	-- If item changed to a different item, don't glow (e.g. sorting)
+	if link and prevItem and link ~= prevItem then
+		self.isNewItem = nil
+		self.newItemGlow:Hide()
 	end
 end
 

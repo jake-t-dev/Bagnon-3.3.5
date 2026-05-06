@@ -238,3 +238,68 @@ end
 function Settings:GetLastTextSearch()
 	return self.lastTextSearch or ''
 end
+
+
+--show slot count
+function Settings:SetShowSlotCount(enable)
+	if self:IsShowingSlotCount() ~= enable then
+		self:GetDB().showSlotCount = enable
+		self:SendMessage('SLOT_COUNT_UPDATE', enable)
+	end
+end
+
+function Settings:IsShowingSlotCount()
+	return self:GetDB().showSlotCount
+end
+
+
+--show item level
+function Settings:SetShowItemLevel(enable)
+	if self:IsShowingItemLevel() ~= enable then
+		self:GetDB().showItemLevel = enable
+		self:SendMessage('ITEM_LEVEL_UPDATE', enable)
+	end
+end
+
+function Settings:IsShowingItemLevel()
+	return self:GetDB().showItemLevel
+end
+
+
+--show new item glow
+function Settings:SetShowNewItemGlow(enable)
+	if self:IsShowingNewItemGlow() ~= enable then
+		self:GetDB().showNewItemGlow = enable
+		self:SendMessage('NEW_ITEM_GLOW_UPDATE', enable)
+	end
+end
+
+function Settings:IsShowingNewItemGlow()
+	return self:GetDB().showNewItemGlow
+end
+
+
+--sort order
+function Settings:SetSortOrder(order)
+	if self:GetSortOrder() ~= order then
+		self:GetDB().sortOrder = order
+		self:SendMessage('SORT_ORDER_UPDATE', order)
+	end
+end
+
+function Settings:GetSortOrder()
+	return self:GetDB().sortOrder or 'default'
+end
+
+
+--reverse sort
+function Settings:SetReverseSort(enable)
+	if self:IsReverseSorting() ~= enable then
+		self:GetDB().reverseSort = enable
+		self:SendMessage('REVERSE_SORT_UPDATE', enable)
+	end
+end
+
+function Settings:IsReverseSorting()
+	return self:GetDB().reverseSort
+end

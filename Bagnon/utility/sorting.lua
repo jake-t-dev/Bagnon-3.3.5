@@ -7,14 +7,37 @@
 local Sort = Bagnon:NewModule('Sorting', 'AceTimer-3.0')
 Bagnon.Sorting = Sort
 
-Sort.Proprieties = {
-  --'set',
-  'class', 'subclass', --'equip',
-  'quality',
-  'icon',
-  'level', 'name', 'id',
-  'count'
+Sort.Profiles = {
+  default = {
+    'class', 'subclass',
+    'quality',
+    'icon',
+    'level', 'name', 'id',
+    'count'
+  },
+  quality = {
+    'quality',
+    'class', 'subclass',
+    'level', 'name', 'id',
+    'count'
+  },
+  name = {
+    'name',
+    'class', 'subclass',
+    'quality',
+    'level', 'id',
+    'count'
+  },
+  level = {
+    'level',
+    'quality',
+    'class', 'subclass',
+    'name', 'id',
+    'count'
+  },
 }
+
+Sort.Proprieties = Sort.Profiles.default
 
 Sort.init = false
 
@@ -42,8 +65,13 @@ function Sort:Start(itemFrame)
     self:Init()
   end
 
+  -- Apply sort profile from settings
+  local profile = Bagnon.Settings:GetSortOrder()
+  self.Proprieties = self.Profiles[profile] or self.Profiles.default
+  self.reverseSort = Bagnon.Settings:IsReverseSorting()
+
+  Bagnon.isSorting = true
   self.itemFrame = itemFrame
-  --self:SendMessage('SORTING_STATUS', itemFrame)
   self:Run()
 end
 
@@ -72,8 +100,9 @@ function Sort:Iterate()
         local other = from.item
 
         if item.id == other.id and stackable(other) then
-          self:Move(from, target)
-          updateRequired = true
+          if self:Move(from, target) then
+            updateRequired = true
+          end
         end
       end
     end
@@ -106,8 +135,9 @@ function Sort:Iterate()
           end
         end
 
-        self:Move(item.space, goal)
-        updateRequired = true
+        if self:Move(item.space, goal) then
+          updateRequired = true
+        end
       end
     end
   end
@@ -121,6 +151,8 @@ function Sort:Iterate()
 end
 
 function Sort:Stop()
+  self:CancelAllTimers()
+  Bagnon.isSorting = false
   self.itemFrame:SendMessage('SORTING_STATUS')
 end
 
@@ -233,7 +265,7 @@ function Sort:GetOrder(spaces, family)
 end
 
 function Sort:CanRun()
-  return not InCombatLockdown() and not UnitIsDead('player')
+  return not InCombatLockdown() and not UnitIsDeadOrGhost('player')
 end
 
 function Sort:FitsIn(id, family)
@@ -251,9 +283,15 @@ function Sort.Rule(a, b)
     return false
   end
 
+  local reverse = Sort.reverseSort
+
   for _,prop in pairs(Sort.Proprieties) do
     if a[prop] ~= b[prop] then
-      return a[prop] > b[prop]
+      if reverse then
+        return a[prop] < b[prop]
+      else
+        return a[prop] > b[prop]
+      end
     end
   end
 

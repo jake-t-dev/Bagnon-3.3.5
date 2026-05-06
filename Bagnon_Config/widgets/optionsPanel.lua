@@ -26,9 +26,26 @@ function OptionsPanel:New(name, parent, title, subtitle, icon)
 	subtext:SetNonSpaceWrap(true)
 	subtext:SetJustifyH('LEFT')
 	subtext:SetJustifyV('TOP')
-	subtext:SetText(subtitle)
+	subtext:SetText(subtitle or '')
+
+	-- Create scroll frame
+	local scrollFrame = CreateFrame('ScrollFrame', name .. 'ScrollFrame', f, 'UIPanelScrollFrameTemplate')
+	scrollFrame:SetPoint('TOPLEFT', f, 'TOPLEFT', 0, -60)
+	scrollFrame:SetPoint('BOTTOMRIGHT', f, 'BOTTOMRIGHT', -26, 4)
+
+	local scrollChild = CreateFrame('Frame', name .. 'ScrollChild', scrollFrame)
+	scrollChild:SetWidth(560)
+	scrollChild:SetHeight(1)
+	scrollFrame:SetScrollChild(scrollChild)
+
+	f.scrollFrame = scrollFrame
+	f.scrollChild = scrollChild
 	
 	InterfaceOptions_AddCategory(f, 'Bagnon')
 
 	return f
+end
+
+function OptionsPanel:GetScrollChild()
+	return self.scrollChild
 end

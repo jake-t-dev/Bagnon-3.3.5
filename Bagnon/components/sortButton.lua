@@ -61,12 +61,11 @@ function SortButton:New(frameID, parent)
 end
 
 function SortButton:OnClick(button)
-	if UnitIsDead('player') then return end
+	if not Bagnon.Sorting:CanRun() then return end
 	self:SetChecked(true)
 	self:RegisterMessage('SORTING_STATUS')
 
 	local frame = self:GetParent()
-	-- frame:IsCached ?
 	frame:SortItems()
 end
 
@@ -74,6 +73,8 @@ function SortButton:OnShow()
 	self:RegisterEvent('PLAYER_DEAD')
 	self:RegisterEvent('PLAYER_UNGHOST')
 	self:RegisterEvent('PLAYER_ALIVE')
+	self:RegisterEvent('PLAYER_REGEN_DISABLED')
+	self:RegisterEvent('PLAYER_REGEN_ENABLED')
 	self:UpdateDisabledState()
 end
 
@@ -81,6 +82,8 @@ function SortButton:OnHide()
 	self:UnregisterEvent('PLAYER_DEAD')
 	self:UnregisterEvent('PLAYER_UNGHOST')
 	self:UnregisterEvent('PLAYER_ALIVE')
+	self:UnregisterEvent('PLAYER_REGEN_DISABLED')
+	self:UnregisterEvent('PLAYER_REGEN_ENABLED')
 end
 
 function SortButton:OnEvent()
@@ -88,7 +91,7 @@ function SortButton:OnEvent()
 end
 
 function SortButton:UpdateDisabledState()
-	if UnitIsDead('player') then
+	if not Bagnon.Sorting:CanRun() then
 		self:Disable()
 		self:GetNormalTexture():SetDesaturated(true)
 	else

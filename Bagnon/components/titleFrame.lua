@@ -22,8 +22,19 @@ function TitleFrame:New(frameID, parent)
 	b:SetHighlightFontObject('GameFontHighlightLeft')
 	b:RegisterForClicks('anyUp')
 
+	local slotCountFrame = CreateFrame('Frame', nil, b)
+	slotCountFrame:SetAllPoints(b)
+	slotCountFrame:SetFrameLevel(b:GetFrameLevel() + 1)
+	local slotCount = slotCountFrame:CreateFontString(nil, 'OVERLAY')
+	slotCount:SetFont(GameFontNormalSmall:GetFont())
+	slotCount:SetPoint('RIGHT', b, 'RIGHT', 0, 0)
+	slotCount:SetJustifyH('RIGHT')
+	slotCount:SetTextColor(1, 1, 1)
+	b.slotCount = slotCount
+
 	b:SetScript('OnShow', b.OnShow)
 	b:SetScript('OnHide', b.OnHide)
+	b:SetScript('OnEvent', b.OnEvent)
 	b:SetScript('OnMouseDown', b.OnMouseDown)
 	b:SetScript('OnMouseUp', b.OnMouseUp)
 	b:SetScript('OnDoubleClick', b.OnDoubleClick)
@@ -43,19 +54,32 @@ end
 function TitleFrame:PLAYER_UPDATE(msg, frameID, player)
 	if frameID == self:GetFrameID() then
 		self:UpdateText()
+		self:UpdateSlotCount()
 	end
+end
+
+function TitleFrame:SLOT_COUNT_UPDATE()
+	self:UpdateSlotCount()
 end
 
 
 --[[ Frame Events ]]--
 
+function TitleFrame:OnEvent(event, ...)
+	if event == 'BAG_UPDATE' then
+		self:UpdateSlotCount()
+	end
+end
+
 function TitleFrame:OnShow()
 	self:UpdateText()
+	self:UpdateSlotCount()
 	self:UpdateEvents()
 end
 
 function TitleFrame:OnHide()
 	self:StopMovingFrame()
+	self:UnregisterAllEvents()
 end
 
 function TitleFrame:OnMouseDown()
@@ -103,6 +127,37 @@ function TitleFrame:UpdateText()
 	self:GetFontString():SetAllPoints(self)
 end
 
+function TitleFrame:UpdateSlotCount()
+	if not Bagnon.Settings or not Bagnon.Settings:IsShowingSlotCount() then
+		self.slotCount:SetText('')
+		return
+	end
+
+	local settings = self:GetSettings()
+	if not settings then
+		self.slotCount:SetText('')
+		return
+	end
+
+	local player = settings:GetPlayerFilter()
+	local totalSlots, usedSlots = 0, 0
+
+	for _, bag in settings:GetVisibleBagSlots() do
+		local size = Bagnon.BagSlotInfo:GetSize(player, bag)
+		totalSlots = totalSlots + size
+		if not Bagnon.BagSlotInfo:IsCached(player, bag) then
+			for slot = 1, size do
+				if GetContainerItemLink(bag, slot) then
+					usedSlots = usedSlots + 1
+				end
+			end
+		end
+	end
+
+	local freeSlots = totalSlots - usedSlots
+	self.slotCount:SetFormattedText('%d/%d', freeSlots, totalSlots)
+end
+
 function TitleFrame:UpdateTooltip()
 	GameTooltip:SetText(L.TipDoubleClickSearch)
 	GameTooltip:Show()
@@ -110,9 +165,14 @@ end
 
 function TitleFrame:UpdateEvents()
 	self:UnregisterAllMessages()
+	self:UnregisterAllEvents()
 
 	if self:IsVisible() then
 		self:RegisterMessage('PLAYER_UPDATE')
+		self:RegisterMessage('SLOT_COUNT_UPDATE')
+		if not Bagnon.PlayerInfo:IsCached(self:GetPlayer()) then
+			self:RegisterEvent('BAG_UPDATE')
+		end
 	end
 end
 

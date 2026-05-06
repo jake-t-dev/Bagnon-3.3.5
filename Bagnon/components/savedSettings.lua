@@ -101,6 +101,11 @@ function SavedSettings:GetDefaultSettings()
 		highlightOpacity = 0.5,
 		sortIgnoreSlotsCount = 0,
 		sortIgnoreSlotsAtBottom = false,
+		showSlotCount = true,
+		showItemLevel = true,
+		showNewItemGlow = true,
+		sortOrder = 'default',
+		reverseSort = false,
 	}
 	
 	return self.defaults

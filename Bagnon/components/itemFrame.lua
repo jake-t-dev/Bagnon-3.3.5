@@ -234,6 +234,8 @@ function ItemFrame:UpdateEvents()
 		self:RegisterMessage('SHOW_EMPTY_ITEM_SLOT_TEXTURE_UPDATE', 'HandleGlobalItemEvent')
 		self:RegisterMessage('ITEM_SLOT_COLOR_UPDATE', 'HandleGlobalItemEvent')
 		self:RegisterMessage('ITEM_SLOT_COLOR_ENABLED_UPDATE', 'HandleGlobalItemEvent')
+		self:RegisterMessage('ITEM_LEVEL_UPDATE', 'HandleGlobalItemEvent')
+		self:RegisterMessage('NEW_ITEM_GLOW_UPDATE', 'HandleGlobalItemEvent')
 	end
 end
 

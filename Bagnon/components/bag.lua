@@ -111,6 +111,7 @@ function Bag:UpdateEvents()
 	if self:IsVisible() then
 		self:RegisterMessage('BAG_SLOT_SHOW')
 		self:RegisterMessage('BAG_SLOT_HIDE')
+		self:RegisterMessage('SLOT_COUNT_UPDATE')
 
 		if self:IsBagSlot() then
 			self:RegisterMessage('PLAYER_UPDATE')
@@ -188,6 +189,10 @@ function Bag:BAG_SLOT_HIDE(msg, frameID, slotID)
 	if frameID == self:GetFrameID() and slotID == self:GetID() then
 		self:UpdateShown()
 	end
+end
+
+function Bag:SLOT_COUNT_UPDATE()
+	self:UpdateSlotInfo()
 end
 
 function Bag:PLAYER_UPDATE(msg, frameID, player)
@@ -355,7 +360,37 @@ function Bag:UpdateSlotInfo()
 			SetItemButtonTextureVertexColor(self, 1, 1, 1)
 		end
 	end
-	self:SetCount(count)
+
+	if Bagnon.Settings and Bagnon.Settings:IsShowingSlotCount() then
+		self:UpdateFreeSlotCount()
+	else
+		self:SetCount(count)
+	end
+end
+
+function Bag:UpdateFreeSlotCount()
+	local text = _G[self:GetName() .. 'Count']
+	local player = self:GetPlayer()
+	local bag = self:GetID()
+	local size = Bagnon.BagSlotInfo:GetSize(player, bag)
+
+	if size == 0 then
+		text:Hide()
+		return
+	end
+
+	local usedSlots = 0
+	if not Bagnon.BagSlotInfo:IsCached(player, bag) then
+		for slot = 1, size do
+			if GetContainerItemLink(bag, slot) then
+				usedSlots = usedSlots + 1
+			end
+		end
+	end
+
+	local freeSlots = size - usedSlots
+	text:SetText(freeSlots)
+	text:Show()
 end
 
 function Bag:SetCount(count)
