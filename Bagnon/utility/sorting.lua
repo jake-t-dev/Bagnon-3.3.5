@@ -174,14 +174,14 @@ function Sort:GetSpaces()
         local itemName, itemLink, itemRarity, itemLevel, itemMinLevel, itemType, itemSubType, itemStackCount = GetItemInfo(link)
         item.class = Sort.Classes[itemType] and Sort.Classes[itemType].index or 0
         item.subclass = Sort.Classes[itemType] and Sort.Classes[itemType].subClasses[itemSubType] or 0
-        item.stack = itemStackCount
+        item.stack = itemStackCount or 1
         item.count = count
         item.id =  tonumber(link:match("item:(%d+)")) or 0
         item.locked = locked
         item.quality = quality
         item.icon = texture
-        item.level = itemLevel
-        item.name = itemName
+        item.level = itemLevel or 0
+        item.name = itemName or ''
       end
 		end
 	end
