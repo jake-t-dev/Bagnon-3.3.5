@@ -4,7 +4,7 @@
 --]]
 
 --local Search = LibStub('ItemSearch-1.3')
-local Sort = Bagnon:NewModule('Sorting', 'AceTimer-3.0')
+local Sort = Bagnon:NewModule('Sorting', 'AceTimer-3.0', 'AceEvent-3.0')
 Bagnon.Sorting = Sort
 
 Sort.Profiles = {
@@ -57,6 +57,10 @@ end
 --[[ Process ]]--
 
 function Sort:Start(itemFrame)
+  if Bagnon.isSorting then
+    return self:Stop()
+  end
+
   if not self:CanRun() then
     return
   end
@@ -72,11 +76,26 @@ function Sort:Start(itemFrame)
 
   Bagnon.isSorting = true
   self.itemFrame = itemFrame
+
+  self:RegisterEvent('PLAYER_REGEN_DISABLED', 'Stop')
+  self:RegisterEvent('PLAYER_DEAD', 'Stop')
+
+  if itemFrame:GetFrameID() == 'bank' then
+    self:RegisterEvent('BANKFRAME_CLOSED', 'Stop')
+  end
+
   self:Run()
 end
 
-function Sort:Run()
-  if self:CanRun() then
+function Sort:Run(event)
+
+  -- need bag for updates settle before the next pass
+  if event == 'ITEM_LOCK_CHANGED' then
+    self:CancelAllTimers()
+    self:ScheduleTimer("Run", 0.05)
+
+  elseif self:CanRun() then
+    self:UnregisterEvent('ITEM_LOCK_CHANGED')
     ClearCursor()
     self:Iterate()
   else
@@ -86,6 +105,15 @@ end
 
 function Sort:Iterate()
   local spaces = self:GetSpaces()
+
+  -- need to wait for item locks for clear
+  for _, space in ipairs(spaces) do
+    if space.item.locked then
+      self:RegisterEvent('ITEM_LOCK_CHANGED', 'Run')
+      return
+    end
+  end
+
   local families = self:GetFamilies(spaces)
   local updateRequired = false;
   local stackable = function(item)
@@ -157,6 +185,7 @@ function Sort:Iterate()
 end
 
 function Sort:Stop()
+  self:UnregisterAllEvents()
   self:CancelAllTimers()
   Bagnon.isSorting = false
   self.itemFrame:SendMessage('SORTING_STATUS')
@@ -173,7 +202,9 @@ function Sort:GetSpaces()
 		for slot = 1, itemFrame:GetBagSize(bag) do
 			local itemSlot = itemFrame:GetItemSlot(bag, slot)
       local texture, count, locked, quality, readable, lootable, link = itemSlot:GetItemSlotInfo()
-      local item = {}
+
+      local item = {locked = locked} -- keep lock state even without an item link
+
       tinsert(spaces, {index = #spaces, bag = bag, slot = slot, family = family, item = item})
       item.space = spaces[#spaces]
       if link then
@@ -183,9 +214,8 @@ function Sort:GetSpaces()
         item.stack = itemStackCount or 1
         item.count = count
         item.id =  tonumber(link:match("item:(%d+)")) or 0
-        item.locked = locked
-        item.quality = quality
-        item.icon = texture
+        item.quality = quality or 0
+        item.icon = texture or ''
         item.level = itemLevel or 0
         item.name = itemName or ''
       end
