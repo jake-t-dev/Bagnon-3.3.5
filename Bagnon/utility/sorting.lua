@@ -108,13 +108,32 @@ function Sort:Iterate()
     end
   end
 
-  local moveDistance = function(item, goal)
-    return math.abs(item.space.index - goal.index)
+  -- rebuild ordering on next pass
+  if updateRequired then
+    self:ScheduleTimer("Run", 0.05)
+    return
   end
 
   for _, family in ipairs(families) do
     local order, spaces = self:GetOrder(spaces, family)
     local n = min(#order, #spaces)
+
+    -- identical stacks of items are interchangeable!!!
+    local at = {}
+    for index, item in ipairs(order) do
+      at[item] = index
+    end
+
+    for index = 1, n do
+      local item = order[index]
+      local held = spaces[index].item
+      local from = at[held]
+
+      if from and held.id == item.id and held.count == item.count then
+        order[from], order[index] = item, held
+        at[item], at[held] = from, index
+      end
+    end
 
     for index = 1, n do
       local goal = spaces[index]
@@ -122,19 +141,6 @@ function Sort:Iterate()
       item.sorted = true
 
       if item.space ~= goal then
-        local distance = moveDistance(item, goal)
-
-        for j = index, n do
-          local other = order[j]
-          if other.id == item.id and other.count == item.count then
-            local d = moveDistance(other, spaces[j])
-            if d > distance then
-              item = other
-              distance = d
-            end
-          end
-        end
-
         if self:Move(item.space, goal) then
           updateRequired = true
         end
@@ -302,7 +308,7 @@ function Sort.Rule(a, b)
 end
 
 function Sort:Move(from, to)
-  if from.locked or to.locked or (to.item.id and not self:FitsIn(to.item.id, from.family)) then
+  if from.locked or to.locked or from.item.locked or to.item.locked or (to.item.id and not self:FitsIn(to.item.id, from.family)) then
     return
   end
 
